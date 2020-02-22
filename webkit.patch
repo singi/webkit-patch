@@ -1,0 +1,44 @@
+diff -urN webkitgtk-2.26.4/Source/WebCore/page/DOMWindow.cpp webkitgtk-fuzz/Source/WebCore/page/DOMWindow.cpp
+--- webkitgtk-2.26.4/Source/WebCore/page/DOMWindow.cpp  2019-08-28 20:46:31.000000000 +0900
++++ webkitgtk-fuzz/Source/WebCore/page/DOMWindow.cpp    2020-02-22 19:12:34.986590800 +0900
+@@ -26,6 +26,7 @@
+
+ #include "config.h"
+ #include "DOMWindow.h"
++#include "GCController.h"
+
+ #include "BackForwardController.h"
+ #include "BarProp.h"
+@@ -1097,6 +1098,8 @@
+
+ void DOMWindow::alert(const String& message)
+ {
++    WebCore::GCController::singleton().garbageCollectNow();
++    return;
+     auto* frame = this->frame();
+     if (!frame)
+         return;
+diff -urN webkitgtk-2.26.4/Source/WebKit/PlatformGTK.cmake webkitgtk-fuzz/Source/WebKit/PlatformGTK.cmake
+--- webkitgtk-2.26.4/Source/WebKit/PlatformGTK.cmake    2019-08-28 20:46:32.000000000 +0900
++++ webkitgtk-fuzz/Source/WebKit/PlatformGTK.cmake      2020-02-22 19:13:44.962699773 +0900
+@@ -612,7 +612,7 @@
+         OUTPUT ${CMAKE_BINARY_DIR}/WebKit2-${WEBKITGTK_API_VERSION}.gir
+         DEPENDS WebKit
+         DEPENDS ${CMAKE_BINARY_DIR}/JavaScriptCore-${WEBKITGTK_API_VERSION}.gir
+-        COMMAND CC=${CMAKE_C_COMPILER} CFLAGS=-Wno-deprecated-declarations LDFLAGS=
++        COMMAND CC=${CMAKE_C_COMPILER} CFLAGS=\"-Wno-deprecated-declarations -fsanitize=address\" LDFLAGS=\"-fsanitize=address\"
+             ${LOADER_LIBRARY_PATH_VAR}="${INTROSPECTION_ADDITIONAL_LIBRARY_PATH}"
+             ${INTROSPECTION_SCANNER}
+             --quiet
+@@ -656,8 +656,8 @@
+         OUTPUT ${CMAKE_BINARY_DIR}/WebKit2WebExtension-${WEBKITGTK_API_VERSION}.gir
+         DEPENDS ${CMAKE_BINARY_DIR}/JavaScriptCore-${WEBKITGTK_API_VERSION}.gir
+         DEPENDS ${CMAKE_BINARY_DIR}/WebKit2-${WEBKITGTK_API_VERSION}.gir
+-        COMMAND CC=${CMAKE_C_COMPILER} CFLAGS=-Wno-deprecated-declarations
+-            LDFLAGS="${INTROSPECTION_ADDITIONAL_LDFLAGS}"
++        COMMAND CC=${CMAKE_C_COMPILER} CFLAGS=\"-Wno-deprecated-declarations -fsanitize=address\"
++            LDFLAGS="${INTROSPECTION_ADDITIONAL_LDFLAGS} -fsanitize=address"
+             ${LOADER_LIBRARY_PATH_VAR}="${INTROSPECTION_ADDITIONAL_LIBRARY_PATH}"
+             ${INTROSPECTION_SCANNER}
+             --quiet
+
